@@ -1,0 +1,11 @@
+{
+  "token": "1151841071:AAHd5i7NKol0i8Lgps5JfzGywGwCLFpbFsw",
+  "options": {
+    "telegram": {           
+      "agent": null,        
+      "webhookReply": true  
+    },
+    "username": "WeatherYMH",        
+    "channelMode": false
+  }
+}
