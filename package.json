@@ -1,0 +1,28 @@
+{
+  "name": "weatherbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaksGovor/WeatherBot.git"
+  },
+  "keywords": [
+    "telegraf",
+    "API",
+    "telegram-bot",
+    "weather-bot"
+  ],
+  "author": "MaksGovor (https://github.com/MaksGovor)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MaksGovor/WeatherBot/issues"
+  },
+  "homepage": "https://github.com/MaksGovor/WeatherBot#readme",
+  "dependencies": {
+    "telegraf": "^3.38.0"
+  }
+}
