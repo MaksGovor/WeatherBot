@@ -5,6 +5,8 @@ const request = require('request');
 const config = require('./config.json');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
+const { helper } = require('./display.js');
+
 const TOKEN = process.env.BOT_TOKEN || config.token;
 const apiKey = config['api-key'];
 const bot = new Telegraf(TOKEN, config.options);
@@ -36,7 +38,7 @@ const projection = metadata => {
   return mapper;
 };
 
-// Make groups by by a common field
+// Make groups by a common field
 
 const groupedByField = (arr, key) => {
   const groups = new Object(), result = new Array();
@@ -53,10 +55,10 @@ const groupedByField = (arr, key) => {
 const mdFor5Day = {
   list: ['list', {
     temp: ['main', {
-      average: ['temp', t => `${Math.floor(+t - 273)}℃`],
-      feelsLike: ['feels_like', t => `${Math.floor(+t - 273)}℃`],
-      min: ['temp_min', t => `${Math.floor(+t - 273)}℃`],
-      max: ['temp_max', t => `${Math.floor(+t - 273)}℃`],
+      average: ['temp', t => `Average temperature: ${Math.floor(+t - 273)}℃`],
+      feelsLike: ['feels_like', t => `Feels like temperature: ${Math.floor(+t - 273)}℃`],
+      min: ['temp_min', t => `Min temperature: ${Math.floor(+t - 273)}℃`],
+      max: ['temp_max', t => `Max temperature: ${Math.floor(+t - 273)}℃`],
     }],
     weather: ['weather', {
       main: ['main', x => `At that time the weather is: ${x}`],
@@ -110,14 +112,15 @@ bot.command('weather5days', ctx => {
     (err, reaponse, data) => {
       try {
         data = JSON.parse(data);
-        if (!err) ctx.reply(testp(data).list[0]);
+        const grouped = groupedByField(testp(data).list, 'date');
+        if (!err) ctx.reply(helper(grouped[0][0]));
       } catch (err) {
         ctx.reply('!!!Error ' + err.message);
       }
     });
 });
 
-//bot.launch();
+bot.launch();
 
 
 
@@ -127,7 +130,7 @@ request('https://api.openweathermap.org/data/2.5/forecast?q=Krolevets&appid=' + 
     if (!err) {
       data = JSON.parse(data);
       const grouped = groupedByField(testp(data).list, 'date');
-      console.dir(grouped[0], { depth: 3 });
+      console.log(grouped.map(helper)[0]);
     }
   }
 );
