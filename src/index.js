@@ -68,8 +68,8 @@ const mdFor5Day = {
       speed: ['speed', s => `The wind speed is ${s} m/s`],
     }],
     rain: ['rain', r => `Chanse of presipitation is ${r['3h']}`],
-    date: ['dt_txt', d => d.split(' ').shift()],
-    time: ['dt_txt', d => d.split(' ').pop()],
+    date: ['dt_txt', d => `Date: ${d.split(' ').shift()}`],
+    time: ['dt_txt', d => `Time: ${d.split(' ').pop()}`],
   }],
   city: ['city', {
     name: ['name', x => x],
@@ -79,6 +79,25 @@ const mdFor5Day = {
   }]
 };
 
+const mdThisTimeWeather = {
+  name: ['name', x => `City: ${x}`],
+  date: ['dt', d => `Date: ${new Date().toString()}`],
+  temp: ['main', {
+    average: ['temp', t => `Average temperature: ${Math.floor(+t - 273)}℃`],
+    feelsLike: ['feels_like', t => `Feels like temperature: ${Math.floor(+t - 273)}℃`],
+    min: ['temp_min', t => `Min temperature: ${Math.floor(+t - 273)}℃`],
+    max: ['temp_max', t => `Max temperature: ${Math.floor(+t - 273)}℃`],
+  }],
+  weather: ['weather', {
+    main: ['main', x => `At that time the weather is: ${x}`],
+    description: ['description', x => `More about the weather: ${x}`],
+  }],
+  wind: ['wind', {
+    speed: ['speed', s => `The wind speed is ${s} m/s`],
+  }],
+  rain: ['rain', r => `Chanse of presipitation is ${r['3h']}`],
+}
+
 const keyboard = Markup.inlineKeyboard([
   Markup.urlButton('author', 'https://github.com/MaksGovor'),
   Markup.callbackButton('Delete', 'delete')
@@ -87,7 +106,8 @@ const keyboard = Markup.inlineKeyboard([
 
 // Usage
 
-const testp = projection(mdFor5Day);
+const project5D = projection(mdFor5Day);
+const projectTD = projection(mdThisTimeWeather);
 
 bot.start(ctx => ctx.reply('Hello'));
 
@@ -98,7 +118,7 @@ bot.command('weather', ctx => {
     (err, reaponse, data) => {
       try {
         data = JSON.parse(data);
-        if (!err) ctx.reply('\n' + data.weather[0].description);
+        if (!err) ctx.reply(helper(projectTD(data)));
       } catch (err) {
         ctx.reply('!!!Error ' + err.message);
       }
@@ -112,8 +132,8 @@ bot.command('weather5days', ctx => {
     (err, reaponse, data) => {
       try {
         data = JSON.parse(data);
-        const grouped = groupedByField(testp(data).list, 'date');
-        if (!err) ctx.reply(helper(grouped[0][0]));
+        const grouped = groupedByField(project5D(data).list, 'date');
+        if (!err) ctx.reply(grouped[1].map(helper).join('\n' + '_'.repeat(40) + '\n'));
       } catch (err) {
         ctx.reply('!!!Error ' + err.message);
       }
@@ -129,7 +149,7 @@ request('https://api.openweathermap.org/data/2.5/forecast?q=Krolevets&appid=' + 
   (err, reaponse, data) => {
     if (!err) {
       data = JSON.parse(data);
-      const grouped = groupedByField(testp(data).list, 'date');
+      const grouped = groupedByField(project5D(data).list, 'date');
       console.log(grouped.map(helper)[0]);
     }
   }
