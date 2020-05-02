@@ -1,15 +1,18 @@
 'use strict';
 
 const { Telegraf } = require('telegraf');
-const Extra = require('telegraf/extra');
-const Markup = require('telegraf/markup');
 const request = require('request');
 const config = require('./config.json');
+const Extra = require('telegraf/extra');
+const Markup = require('telegraf/markup');
 const TOKEN = process.env.BOT_TOKEN || config.token;
-const apiKey = config["api-key"];
+const apiKey = config['api-key'];
 const bot = new Telegraf(TOKEN, config.options);
 
 const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
+
+
+// Project data by metadata
 
 const projection = metadata => {
   const keys = Object.keys(metadata);
@@ -22,7 +25,7 @@ const projection = metadata => {
       if (val) {
         if (transform) {
           val = typeof transform === 'function' ?
-            transform(val) : Array.isArray(val) ? 
+            transform(val) : Array.isArray(val) ?
               val.map(projection(transform)) : val = projection(transform)(val);
         }
         hash[key] = val;
@@ -31,10 +34,21 @@ const projection = metadata => {
     return hash;
   };
   return mapper;
-}
- 
+};
 
-// Usage 
+// Make groups by by a common field
+
+const groupedByField = (arr, key) => {
+  const groups = new Object(), result = new Array();
+  arr.forEach(obj => {
+      if (!(obj[key] in groups)) {
+          groups[obj[key]] = [];
+          result.push(groups[obj[key]]);
+      }
+      groups[obj[key]].push(obj);
+  });
+  return result;
+}
 
 const mdFor5Day = {
   list: ['list', {
@@ -42,7 +56,7 @@ const mdFor5Day = {
       average: ['temp', t => `${Math.floor(+t - 273)}℃`],
       feelsLike: ['feels_like', t => `${Math.floor(+t - 273)}℃`],
       min: ['temp_min', t => `${Math.floor(+t - 273)}℃`],
-      max: ['temp_max', t => `${Math.floor(+t - 273)}℃`],    
+      max: ['temp_max', t => `${Math.floor(+t - 273)}℃`],
     }],
     weather: ['weather', {
       main: ['main', x => `At that time the weather is: ${x}`],
@@ -52,22 +66,26 @@ const mdFor5Day = {
       speed: ['speed', s => `The wind speed is ${s} m/s`],
     }],
     rain: ['rain', r => `Chanse of presipitation is ${r['3h']}`],
-    date: ['dt_txt', d => d],
+    date: ['dt_txt', d => d.split(' ').shift()],
+    time: ['dt_txt', d => d.split(' ').pop()],
   }],
   city: ['city', {
     name: ['name', x => x],
     country: ['country', x => x],
-    sunrise: ['sunrise', x => new Date(x*1000).toLocaleString()],
-    sunset: ['sunset', x => new Date(x*1000).toLocaleString()],
+    sunrise: ['sunrise', x => new Date(x * 1000).toLocaleString()],
+    sunset: ['sunset', x => new Date(x * 1000).toLocaleString()],
   }]
-}
-
-const testp = projection(mdFor5Day);
+};
 
 const keyboard = Markup.inlineKeyboard([
   Markup.urlButton('author', 'https://github.com/MaksGovor'),
   Markup.callbackButton('Delete', 'delete')
 ]);
+
+
+// Usage
+
+const testp = projection(mdFor5Day);
 
 bot.start(ctx => ctx.reply('Hello'));
 
@@ -78,12 +96,12 @@ bot.command('weather', ctx => {
     (err, reaponse, data) => {
       try {
         data = JSON.parse(data);
-        if (!err) ctx.reply(data.weather[0].main + '\n' + data.weather[0].description);
+        if (!err) ctx.reply('\n' + data.weather[0].description);
       } catch (err) {
         ctx.reply('!!!Error ' + err.message);
       }
-  });
-})
+    });
+});
 
 bot.command('weather5days', ctx => {
   const text = getTownFromMsg(ctx.message.text);
@@ -92,24 +110,27 @@ bot.command('weather5days', ctx => {
     (err, reaponse, data) => {
       try {
         data = JSON.parse(data);
-        if (!err) ctx.reply(data.list.map(testp)[0]);
+        if (!err) ctx.reply(testp(data).list[0]);
       } catch (err) {
         ctx.reply('!!!Error ' + err.message);
       }
-  });
-})
+    });
+});
+
+//bot.launch();
 
 
-bot.launch();
 
+// Testing API part
 request('https://api.openweathermap.org/data/2.5/forecast?q=Krolevets&appid=' + apiKey,
   (err, reaponse, data) => {
-    if (!err){
+    if (!err) {
       data = JSON.parse(data);
-      console.dir(testp(data), {depth: 2});
+      const grouped = groupedByField(testp(data).list, 'date');
+      console.dir(grouped[0], { depth: 3 });
     }
   }
-)
+);
 
 
 //console.log(config.options);
