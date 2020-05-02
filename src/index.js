@@ -13,7 +13,7 @@ const bot = new Telegraf(TOKEN, config.options);
 
 const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
 
-
+let Gtext = '';
 // Project data by metadata
 
 const projection = metadata => {
@@ -99,9 +99,9 @@ const mdThisTimeWeather = {
 }
 
 const keyboard = Markup.inlineKeyboard([
-  Markup.urlButton('author', 'https://github.com/MaksGovor'),
-  Markup.callbackButton('Delete', 'delete')
-]);
+  Markup.callbackButton('⬅', 'left'),
+  Markup.callbackButton('➡', 'right'),
+])
 
 
 // Usage
@@ -111,34 +111,82 @@ const projectTD = projection(mdThisTimeWeather);
 
 bot.start(ctx => ctx.reply('Hello'));
 
-bot.command('weather', ctx => {
+bot.command('weather', async ctx => {
   const text = getTownFromMsg(ctx.message.text);
-  console.log(text);
   request('https://api.openweathermap.org/data/2.5/weather?q=' + text + '&appid=' + apiKey,
-    (err, reaponse, data) => {
+    async (err, reaponse, data) => {
       try {
         data = JSON.parse(data);
-        if (!err) ctx.reply(helper(projectTD(data)));
+        if (!err) {
+          await ctx.reply(helper(projectTD(data)));
+        }
       } catch (err) {
-        ctx.reply('!!!Error ' + err.message);
+        await ctx.reply('!!!Error ' + err.message);
       }
     });
 });
 
-bot.command('weather5days', ctx => {
+bot.command('weather5days', async ctx => {
   const text = getTownFromMsg(ctx.message.text);
-  console.log(text);
+  Gtext = text;
   request('https://api.openweathermap.org/data/2.5/forecast?q=' + text + '&appid=' + apiKey,
-    (err, reaponse, data) => {
+    async (err, reaponse, data) => {
       try {
         data = JSON.parse(data);
         const grouped = groupedByField(project5D(data).list, 'date');
-        if (!err) ctx.reply(grouped[1].map(helper).join('\n' + '_'.repeat(40) + '\n'));
+        if (!err) {
+          //await ctx.reply(grouped[1].map(helper).join('\n' + '_'.repeat(40) + '\n'));
+          const first = grouped[0].map(helper).join('\n' + '_'.repeat(40) + '\n')
+          await ctx.telegram.sendMessage(ctx.chat.id, first, Extra.markup(keyboard));          
+        }
       } catch (err) {
-        ctx.reply('!!!Error ' + err.message);
+        await ctx.reply('!!!Error ' + err.message);
       }
-    });
+  });
 });
+
+bot.action('delete', ({ deleteMessage }) => deleteMessage())
+
+let i = 0;
+
+bot.action('right', ctx => {
+  ctx.deleteMessage();
+  ctx.answerCbQuery('great');
+  request('https://api.openweathermap.org/data/2.5/forecast?q=' + Gtext + '&appid=' + apiKey,
+    async (err, reaponse, data) => {
+      try {
+        data = JSON.parse(data);
+        const grouped = groupedByField(project5D(data).list, 'date');
+        if (!err) {
+          i++;
+          const first = grouped[i].map(helper).join('\n' + '_'.repeat(40) + '\n')
+          await ctx.telegram.sendMessage(ctx.chat.id, first, Extra.markup(keyboard));          
+        }
+      } catch (err) {
+        await ctx.reply('!!!Error ' + err.message);
+      }
+  });
+});
+
+bot.action('left', ctx => {
+  ctx.deleteMessage();
+  ctx.answerCbQuery('great');
+  request('https://api.openweathermap.org/data/2.5/forecast?q=' + Gtext + '&appid=' + apiKey,
+    async (err, reaponse, data) => {
+      try {
+        data = JSON.parse(data);
+        const grouped = groupedByField(project5D(data).list, 'date');
+        if (!err) {
+          i--;
+          const first = grouped[i].map(helper).join('\n' + '_'.repeat(40) + '\n')
+          await ctx.telegram.sendMessage(ctx.chat.id, first, Extra.markup(keyboard));          
+        }
+      } catch (err) {
+        await ctx.reply('!!!Error ' + err.message);
+      }
+  });
+});
+
 
 bot.launch();
 
@@ -150,7 +198,7 @@ request('https://api.openweathermap.org/data/2.5/forecast?q=Krolevets&appid=' + 
     if (!err) {
       data = JSON.parse(data);
       const grouped = groupedByField(project5D(data).list, 'date');
-      console.log(grouped.map(helper)[0]);
+      //console.log(grouped.map(arr => arr.map(helper)));
     }
   }
 );
