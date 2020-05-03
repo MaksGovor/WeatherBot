@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "start": "node ./src/index.js",
+    "test": "node ./src/index.js"
+  },
+  "engines": {
+    "node": "12.12.0"
   },
   "repository": {
     "type": "git",
