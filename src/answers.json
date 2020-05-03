@@ -1,0 +1,4 @@
+{
+  "start": "Hi, I'm a bot that will show you the weather anywhere in the world.\nFor now I can only show the weather by the exact name of the city, but I hope to be able to recognize any values soon.\nUse the command /help to show the instructions.\nMy creator is @MaksGovorrr.",
+  "help": "I have three teams so far.\nIt's very simple:\n/weather + {city name} to show the weather in this part of the world right now.\n/weather5days + {city name} - show the weather for 5 days, you can flick through the days with arrows."
+}

@@ -7,6 +7,7 @@ const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const { helper } = require('./display.js');
 const List = require('./list.js');
+const commands = require('./answers.json');
 
 const TOKEN = process.env.BOT_TOKEN || config.token;
 const apiKey = config['api-key'];
@@ -109,14 +110,33 @@ const keyboard = Markup.inlineKeyboard([
 const project5D = projection(mdFor5Day);
 const projectTD = projection(mdThisTimeWeather);
 
-bot.start(ctx => ctx.reply('Hello'));
+bot.start(ctx => ctx.reply(commands.start));
+bot.help(ctx => ctx.reply(commands.help));
+
+bot.on('location', ctx => {
+  const { latitude, longitude } = ctx.message.location;
+  request(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`,
+    async (err, reaponse, data) => {
+      try {
+        data = JSON.parse(data);
+        if (!err) {
+          bot.last = data.name;
+          await ctx.reply(helper(projectTD(data)));
+        }
+      } catch (err) {
+        await ctx.reply('!!!Error ' + err.message);
+      }
+    })
+});
 
 bot.command('weather', async ctx => {
-  const text = getTownFromMsg(ctx.message.text);
+  const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
+  if (!text) return;
   request('https://api.openweathermap.org/data/2.5/weather?q=' + text + '&appid=' + apiKey,
     async (err, reaponse, data) => {
       try {
         data = JSON.parse(data);
+        bot.last = data.name;
         if (!err) {
           await ctx.reply(helper(projectTD(data)));
         }
@@ -127,12 +147,14 @@ bot.command('weather', async ctx => {
 });
 
 bot.command('weather5days', async ctx => {
-  const text = getTownFromMsg(ctx.message.text);
+  const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
+  if (!text) return;
   request('https://api.openweathermap.org/data/2.5/forecast?q=' + text + '&appid=' + apiKey,
     async (err, reaponse, data) => {
       try {
         if (!err) {
           data = project5D(JSON.parse(data));
+          bot.last = data.name;
           const grouped = groupedByField(data.list, 'date');
           const loggered = grouped.map(group =>
             group
