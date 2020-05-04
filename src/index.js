@@ -154,7 +154,7 @@ bot.command('weather5days', async ctx => {
       try {
         if (!err) {
           data = project5D(JSON.parse(data));
-          bot.last = data.name;
+          bot.last = data.city.name;
           const grouped = groupedByField(data.list, 'date');
           const loggered = grouped.map(group =>
             group
