@@ -8,6 +8,7 @@ const Markup = require('telegraf/markup');
 const { helper } = require('./display.js');
 const List = require('./list.js');
 const commands = require('./answers.json');
+const fetch = require('./fetch.js')
 
 const TOKEN = process.env.BOT_TOKEN || config.token;
 const apiKey = config['api-key'];
@@ -115,35 +116,23 @@ bot.help(ctx => ctx.reply(commands.help));
 
 bot.on('location', ctx => {
   const { latitude, longitude } = ctx.message.location;
-  request(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`,
-    async (err, reaponse, data) => {
-      try {
-        data = JSON.parse(data);
-        if (!err) {
-          bot.last = data.name;
-          await ctx.reply(helper(projectTD(data)));
-        }
-      } catch (err) {
-        await ctx.reply('!!!Error ' + err.message);
-      }
+  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
+    .then(data => {
+      bot.last = data.name;
+      ctx.reply(helper(projectTD(data)));
     })
+    .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
 bot.command('weather', async ctx => {
   const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
   if (!text) return;
-  request('https://api.openweathermap.org/data/2.5/weather?q=' + text + '&appid=' + apiKey,
-    async (err, reaponse, data) => {
-      try {
-        data = JSON.parse(data);
-        bot.last = data.name;
-        if (!err) {
-          await ctx.reply(helper(projectTD(data)));
-        }
-      } catch (err) {
-        await ctx.reply('!!!Error ' + err.message);
-      }
-    });
+  fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
+    .then(data => {
+      bot.last = data.name;
+      ctx.reply(helper(projectTD(data)));
+    })
+    .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
 bot.command('weather5days', async ctx => {
@@ -201,14 +190,15 @@ bot.action('left', async ctx => {
 
 bot.launch();
 
-// Testing API part
 
-/*request('https://api.openweathermap.org/data/2.5/forecast?q=Krolevets&appid=' + apiKey,
-  (err, reaponse, data) => {
-    if (!err) {
-      data = JSON.parse(data);
-      const grouped = groupedByField(project5D(data).list, 'date');
-      console.log(grouped.map(arr => arr.map(helper)));
-    }
-  }
-);*/
+
+
+///////////////////////////////////////////////////////////
+
+fetch('https://api.openweathermap.org/data/2.5/weather?q=London&appid=' + apiKey)
+  .then(data => {
+    console.log(typeof data);
+  })
+  .catch(err => {
+    console.error(err);
+  });
