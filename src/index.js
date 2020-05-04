@@ -132,18 +132,24 @@ bot.on('location', ctx => {
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
-bot.command('weather', async ctx => {
+bot.command('weather', ctx => {
   const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
   if (!text) return;
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
       bot.last = data.name;
       ctx.reply(helper(projectTD(data)));
+      const text = data.sys.country;
+      fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
+        .then(data => {
+          ctx.reply('❗BE CAREFUL❗\nCOVID-19 in your counrty\n' + helper(projectCV19(data.pop())));
+        })
+        .catch(err => ctx.reply('!!!Error ' + err.message))
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
-bot.command('weather5days', async ctx => {
+bot.command('weather5days', ctx => {
   const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
   if (!text) return;
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
@@ -187,16 +193,3 @@ bot.action('left', async ctx => {
 });
 
 bot.launch();
-
-///////////////////////////////////////////////////////////
-
-
-fetch(`https://api.openweathermap.org/data/2.5/weather?q=Magadan&appid=${apiKey}`)
-  .then(data => {
-  const text = data.sys.country;
-  fetch(`https://api.covid19api.com/live/country/${text}`)
-    .then(data => {
-      console.dir(data.map(projectCV19));
-    })
-  })
-  .catch(err => 1);
