@@ -139,8 +139,9 @@ bot.command('weather5days', async ctx => {
   if (!text) return;
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
     .then(data => {
-      bot.last = data.city.name;
-      const grouped = groupedByField(data.list, 'date');
+      const parseData = project5D(data);
+      bot.last = parseData.city.name;
+      const grouped = groupedByField(parseData.list, 'date');
       const loggered = grouped.map(group =>
         group
           .map(helper)
@@ -148,7 +149,7 @@ bot.command('weather5days', async ctx => {
       const list = new List();
       loggered.forEach(comp => list.push(comp));
       bot.component = list.first;
-      ctx.reply('🌇 City: ' + data.city.name);
+      ctx.reply('🌇 City: ' + parseData.city.name);
       ctx.telegram.sendMessage(ctx.chat.id, bot.component.data, Extra.markup(keyboard));
     })
     .catch(err => ctx.reply('!!!Error ' + err.message))
