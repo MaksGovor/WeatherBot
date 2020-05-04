@@ -100,6 +100,14 @@ const mdThisTimeWeather = {
   rain: ['rain', r => `🌧️ Chanse of presipitation is ${r['3h']}`],
 };
 
+const mdCovid19 = {
+  country: ['Country', x => `🌇 Country: ${x}`],
+  confirmed: ['Confirmed', x => `🦠 Confirmed cases: ${x}`],
+  deaths: ['Deaths', x => `☠ Deaths: ${x}`],
+  recovered: ['Recovered', x => `🚑 Recovered: ${x}`],
+  date: ['Date', x => `📅 Update: ${new Date(x).toLocaleString()}`]
+}
+
 const keyboard = Markup.inlineKeyboard([
   Markup.callbackButton('⬅', 'left'),
   Markup.callbackButton('➡', 'right'),
@@ -107,6 +115,7 @@ const keyboard = Markup.inlineKeyboard([
 
 const project5D = projection(mdFor5Day);
 const projectTD = projection(mdThisTimeWeather);
+const projectCV19 = projection(mdCovid19);
 
 // Bot functions
 
@@ -177,18 +186,17 @@ bot.action('left', async ctx => {
   }
 });
 
-
 bot.launch();
-
-
-
 
 ///////////////////////////////////////////////////////////
 
-fetch('https://api.openweathermap.org/data/2.5/weather?q=London&appid=' + apiKey)
+
+fetch(`https://api.openweathermap.org/data/2.5/weather?q=Magadan&appid=${apiKey}`)
   .then(data => {
-    console.log(typeof data);
+  const text = data.sys.country;
+  fetch(`https://api.covid19api.com/live/country/${text}`)
+    .then(data => {
+      console.dir(data.map(projectCV19));
+    })
   })
-  .catch(err => {
-    console.error(err);
-  });
+  .catch(err => 1);
