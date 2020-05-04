@@ -105,11 +105,10 @@ const keyboard = Markup.inlineKeyboard([
   Markup.callbackButton('➡', 'right'),
 ]);
 
-
-// Usage
-
 const project5D = projection(mdFor5Day);
 const projectTD = projection(mdThisTimeWeather);
+
+// Bot functions
 
 bot.start(ctx => ctx.reply(commands.start));
 bot.help(ctx => ctx.reply(commands.help));
@@ -138,32 +137,22 @@ bot.command('weather', async ctx => {
 bot.command('weather5days', async ctx => {
   const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
   if (!text) return;
-  request('https://api.openweathermap.org/data/2.5/forecast?q=' + text + '&appid=' + apiKey,
-    async (err, reaponse, data) => {
-      try {
-        if (!err) {
-          data = project5D(JSON.parse(data));
-          bot.last = data.city.name;
-          const grouped = groupedByField(data.list, 'date');
-          const loggered = grouped.map(group =>
-            group
-              .map(helper)
-              .join('\n' + '_'.repeat(40) + '\n'));
-          const list = new List();
-          loggered.forEach(comp => list.push(comp));
-          bot.component = list.first;
-          await ctx.reply('🌇 City: ' + data.city.name);
-          await ctx.telegram.sendMessage(ctx.chat.id, bot.component.data, Extra.markup(keyboard));
-        }
-      } catch (err) {
-        await ctx.reply('!!!Error ' + err.message);
-      }
-    });
+  fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
+    .then(data => {
+      bot.last = data.city.name;
+      const grouped = groupedByField(data.list, 'date');
+      const loggered = grouped.map(group =>
+        group
+          .map(helper)
+          .join('\n' + '_'.repeat(40) + '\n'));
+      const list = new List();
+      loggered.forEach(comp => list.push(comp));
+      bot.component = list.first;
+      ctx.reply('🌇 City: ' + data.city.name);
+      ctx.telegram.sendMessage(ctx.chat.id, bot.component.data, Extra.markup(keyboard));
+    })
+    .catch(err => ctx.reply('!!!Error ' + err.message))
 });
-
-
-
-// Actions
 
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
