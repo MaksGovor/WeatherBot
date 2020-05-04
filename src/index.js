@@ -8,7 +8,7 @@ const Markup = require('telegraf/markup');
 const { helper } = require('./display.js');
 const List = require('./list.js');
 const commands = require('./answers.json');
-const fetch = require('./fetch.js')
+const fetch = require('./fetch.js');
 
 const TOKEN = process.env.BOT_TOKEN || config.token;
 const apiKey = config['api-key'];
@@ -106,7 +106,7 @@ const mdCovid19 = {
   deaths: ['Deaths', x => `☠ Deaths: ${x}`],
   recovered: ['Recovered', x => `🚑 Recovered: ${x}`],
   date: ['Date', x => `📅 Update: ${new Date(x).toLocaleString()}`]
-}
+};
 
 const keyboard = Markup.inlineKeyboard([
   Markup.callbackButton('⬅', 'left'),
@@ -144,7 +144,7 @@ bot.command('weather', ctx => {
         .then(data => {
           ctx.reply('❗BE CAREFUL❗\nCOVID-19 in your counrty\n' + helper(projectCV19(data.pop())));
         })
-        .catch(err => ctx.reply('!!!Error ' + err.message))
+        .catch(err => ctx.reply('!!!Error ' + err.message));
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
@@ -167,7 +167,7 @@ bot.command('weather5days', ctx => {
       ctx.reply('🌇 City: ' + parseData.city.name);
       ctx.telegram.sendMessage(ctx.chat.id, bot.component.data, Extra.markup(keyboard));
     })
-    .catch(err => ctx.reply('!!!Error ' + err.message))
+    .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
