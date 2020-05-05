@@ -13,6 +13,7 @@ const { helper } = require('./display.js');
 const commands = require('./answers.json');
 const fetch = require('./fetch.js');
 const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./metaData.js');
+const User = require('./user.js');
 
 const TOKEN = process.env.BOT_TOKEN || config.token;
 const apiKey = config['api-key'];
@@ -66,6 +67,7 @@ const keyboard = Markup.inlineKeyboard([
 const project5D = projection(mdFor5Day);
 const projectTD = projection(mdThisTimeWeather);
 const projectCV19 = projection(mdCovid19);
+const user = new User();
 
 // Bot functions
 
@@ -76,14 +78,14 @@ bot.on('location', ctx => {
   const { latitude, longitude } = ctx.message.location;
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
     .then(data => {
-      bot.last = data.name;
+      user.last = data.name;
       ctx.reply(helper(projectTD(data)));
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
 bot.command('weather', ctx => {
-  const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
+  const text = !getTownFromMsg(ctx.message.text) ? user.last : getTownFromMsg(ctx.message.text);
   if (!text) {
     ctx.reply(commands.empty_command, Extra.markup((markup) => 
     markup.resize()
@@ -93,7 +95,7 @@ bot.command('weather', ctx => {
   }
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
-      bot.last = data.name;
+      user.last = data.name;
       ctx.reply(helper(projectTD(data)));
       const text = data.sys.country;
       fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
@@ -106,7 +108,7 @@ bot.command('weather', ctx => {
 });
 
 bot.command('weather5days', ctx => {
-  const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
+  const text = !getTownFromMsg(ctx.message.text) ? user.last : getTownFromMsg(ctx.message.text);
   if (!text) {
     ctx.reply(commands.empty_command, Extra.markup((markup) => 
     markup.resize()
@@ -117,7 +119,7 @@ bot.command('weather5days', ctx => {
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
     .then( data => {
       const parseData = project5D(data);
-      bot.last = parseData.city.name;
+      user.last = parseData.city.name;
       const grouped = groupedByField(parseData.list, 'date');
       const loggered = grouped.map(group =>
         group
@@ -125,10 +127,10 @@ bot.command('weather5days', ctx => {
           .join('\n' + '_'.repeat(40) + '\n'));
       const list = new List();
       loggered.forEach(comp => list.push(comp));
-      bot.component = list.first;
+      user.component = list.first;
       (async () => {
       await ctx.reply('🌇 City: ' + parseData.city.name);
-      await ctx.telegram.sendMessage(ctx.chat.id, bot.component.data, Extra.markup(keyboard));
+      await ctx.telegram.sendMessage(ctx.chat.id, user.component.data, Extra.markup(keyboard));
       })();
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
@@ -138,9 +140,9 @@ bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
 bot.action('right', async ctx => {
   try {
-    bot.component = bot.component.next ? bot.component.next : bot.component.list.first;
+    user.component = user.component.next ? user.component.next : user.component.list.first;
     const msgId = ctx.update.callback_query.message.message_id;
-    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId,bot.component.data, Extra.markup(keyboard));
+    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, user.component.data, Extra.markup(keyboard));
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
@@ -148,9 +150,9 @@ bot.action('right', async ctx => {
 
 bot.action('left', async ctx => {
   try {
-    bot.component = bot.component.prev ? bot.component.prev : bot.component.list.last;
+    user.component = user.component.prev ? user.component.prev : user.component.list.last;
     const msgId = ctx.update.callback_query.message.message_id;
-    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId,bot.component.data, Extra.markup(keyboard));
+    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, user.component.data, Extra.markup(keyboard));
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
