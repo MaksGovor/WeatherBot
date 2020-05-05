@@ -137,7 +137,12 @@ bot.on('location', ctx => {
 
 bot.command('weather', ctx => {
   const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
-  if (!text) return;
+  if (!text) {
+    ctx.reply(commands.empty_command, Extra.markup((markup) => 
+    markup.resize()
+      .keyboard([ markup.locationRequestButton('Send location') ])
+  ));
+  }
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
       bot.last = data.name;
@@ -154,7 +159,12 @@ bot.command('weather', ctx => {
 
 bot.command('weather5days', ctx => {
   const text = !getTownFromMsg(ctx.message.text) ? bot.last : getTownFromMsg(ctx.message.text);
-  if (!text) return;
+  if (!text) {
+    ctx.reply(commands.empty_command, Extra.markup((markup) => 
+    markup.resize()
+      .keyboard([ markup.locationRequestButton('Send location') ])
+  ));
+  };
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
     .then( data => {
       const parseData = project5D(data);
@@ -196,5 +206,9 @@ bot.action('left', async ctx => {
     await ctx.reply('!!!Error ' + err.message);
   }
 });
+
+bot.command('special', (ctx) => {
+  return 
+})
 
 bot.launch();
