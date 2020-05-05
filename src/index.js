@@ -2,11 +2,14 @@
 
 const { Telegraf } = require('telegraf');
 const request = require('request');
+
 const config = require('./config.json');
+
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
-const { helper } = require('./display.js');
 const List = require('./list.js');
+
+const { helper } = require('./display.js');
 const commands = require('./answers.json');
 const fetch = require('./fetch.js');
 
@@ -173,20 +176,20 @@ bot.command('weather5days', ctx => {
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
 bot.action('right', async ctx => {
-  ctx.deleteMessage();
   try {
     bot.component = bot.component.next ? bot.component.next : bot.component.list.first;
-    await ctx.telegram.sendMessage(ctx.chat.id, bot.component.data, Extra.markup(keyboard));
+    const msgId = ctx.update.callback_query.message.message_id;
+    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId,bot.component.data, Extra.markup(keyboard));
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
 });
 
 bot.action('left', async ctx => {
-  ctx.deleteMessage();
   try {
     bot.component = bot.component.prev ? bot.component.prev : bot.component.list.last;
-    await ctx.telegram.sendMessage(ctx.chat.id, bot.component.data, Extra.markup(keyboard));
+    const msgId = ctx.update.callback_query.message.message_id;
+    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId,bot.component.data, Extra.markup(keyboard));
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
