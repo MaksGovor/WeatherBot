@@ -161,7 +161,7 @@ bot.command('weather5days', async ctx => {
           .join('\n' + '_'.repeat(40) + '\n'));
       (async () => {
       await ctx.reply('🌇 City: ' + parseData.city.name);
-      await ctx.telegram.sendMessage(ctx.chat.id, shift(loggered), Extra.markup(keyboard));
+      await ctx.telegram.sendMessage(ctx.chat.id, loggered[0], Extra.markup(keyboard));
       updateData({telegramId}, {telegramId, component: loggered, last: parseData.city.name}, User);
       })();
     })
@@ -177,7 +177,7 @@ bot.action('right', async ctx => {
     .catch(err => ctx.reply('!!!Error ' + err.message));
   try {
     const msgId = ctx.update.callback_query.message.message_id;
-    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, shift(data.component), Extra.markup(keyboard));
+    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, shift(data.component)[0], Extra.markup(keyboard));
     updateData({telegramId}, {telegramId, component: data.component, last: data.last}, User);
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
@@ -191,7 +191,7 @@ bot.action('left', async ctx => {
     .catch(err => ctx.reply('!!!Error ' + err.message));
   try {
     const msgId = ctx.update.callback_query.message.message_id;
-    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, shift(data.component), Extra.markup(keyboard));
+    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, pop(data.component)[0], Extra.markup(keyboard));
     updateData({telegramId}, {telegramId, component: data.component, last: data.last}, User);
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);

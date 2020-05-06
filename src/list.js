@@ -3,13 +3,13 @@
 const pop = arr => {
   const element = arr.pop();
   arr.unshift(element);
-  return element;
+  return arr;
 };
 
 const shift = arr => {
   const element = arr.shift();
   arr.push(element);
-  return element;
+  return arr;
 }
 
 module.exports = {pop, shift};
