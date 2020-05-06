@@ -35,9 +35,7 @@ const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
   }
 })();
 
-const user1 = new User1({telegramId: 1234});
-//user1.save();
-
+User1.find({telegramId: 692827211}).then(d => console.log(d));
 // Project data by metadata
 
 const projection = metadata => {
@@ -76,14 +74,16 @@ const groupedByField = (arr, key) => {
   return result;
 };
 
-const findUser = (finder, newShema, Shema) => {
+const updateData = (finder, newShema, Shema) => {
   let res;
   Shema.findOne(finder)
     .then(data => {
-      if (data){
-        data.list = {ma :12};
+      if (data) {
+        const keys = Object.keys(newShema);
+        for (const key of keys) {
+          data[key] = newShema[key];
+        }      
         res = data;
-        //console.log(res._doc);
       }
       else {
         res = new Shema(newShema);
@@ -96,11 +96,9 @@ const findUser = (finder, newShema, Shema) => {
   return res;
 }
 
-const res = findUser({ telegramId: 12234 }, { telegramId: 12234, list : {name:32}}, User1);
+//const k  = updateData({telegramId: 111}, {telegramId:111, component: {aaa: 1}, last: 'aua'}, User1, {component: {aa: 'aaa'}});
 
-
-User1.find({telegramId: 12234}).then(data => console.log(data));
-
+//const f = updateData({telegramId: 12234}, {telegramId: 12234, component: {me: 'be'}, last: 'Chui'}, User1, {component: {fa: 14}})
 
 
 const keyboard = Markup.inlineKeyboard([
@@ -120,26 +118,26 @@ bot.help(ctx => ctx.reply(commands.help));
 
 bot.on('location', ctx => {
   const { latitude, longitude } = ctx.message.location;
+  const telegramId = ctx.update.message.from.id;
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
     .then(data => {
-      user.last = data.name;
+      updateData({telegramId}, {telegramId, component: {}, last: data.name}, User1);
       ctx.reply(helper(projectTD(data)));
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
-bot.command('weather', ctx => {
-  const text = !getTownFromMsg(ctx.message.text) ? user.last : getTownFromMsg(ctx.message.text);
-  if (!text) {
-    ctx.reply(commands.empty_command, Extra.markup((markup) => 
-    markup.resize()
-      .keyboard([ markup.locationRequestButton('Send location') ])
-  ));
-  return;
-  }
+bot.command('weather', async ctx => {
+  let text = getTownFromMsg(ctx.message.text);
+  const telegramId = ctx.update.message.from.id;
+  if (!text){
+      text = await User1.findOne({telegramId})
+        .then(data => data ? data.last : '')
+        .catch(err => ctx.reply('!!!Error ' + err.message));
+  };
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
-      user.last = data.name;
+      updateData({telegramId}, {telegramId, component: {}, last: data.name}, User1);
       ctx.reply(helper(projectTD(data)));
       const text = data.sys.country;
       fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
@@ -151,15 +149,14 @@ bot.command('weather', ctx => {
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
-bot.command('weather5days', ctx => {
-  const text = !getTownFromMsg(ctx.message.text) ? user.last : getTownFromMsg(ctx.message.text);
-  if (!text) {
-    ctx.reply(commands.empty_command, Extra.markup((markup) => 
-    markup.resize()
-      .keyboard([ markup.locationRequestButton('Send location') ])
-  ));
-  return;
-  };
+bot.command('weather5days', async ctx => {
+  const telegramId = ctx.update.message.from.id;
+  let text;
+  if (!text){
+    text = await User1.findOne({telegramId})
+      .then(data => data ? data.last : '')
+      .catch(err => ctx.reply('!!!Error ' + err.message));
+  }
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
     .then( data => {
       const parseData = project5D(data);

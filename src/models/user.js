@@ -9,10 +9,14 @@ const UserShema = new Shema({
     type: Number,
     required: true
   },
-  list: {
+  component: {
     type: Object,
     required: true
   },
+  last: {
+    type: String,
+    required: true
+  }
   /*cities: {
     type: Array,
     required: true
