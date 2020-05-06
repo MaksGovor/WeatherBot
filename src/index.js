@@ -2,6 +2,7 @@
 
 const { Telegraf } = require('telegraf');
 const request = require('request');
+const moongose = require('mongoose');
 
 const config = require('./config.json');
 
@@ -14,12 +15,28 @@ const commands = require('./answers.json');
 const fetch = require('./fetch.js');
 const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./metaData.js');
 const User = require('./user.js');
+const UserShema = require('./models/user.js');
 
 const TOKEN = process.env.BOT_TOKEN || config.token;
 const apiKey = config['api-key'];
 const bot = new Telegraf(TOKEN, config.options);
+const User1 = moongose.model('users', UserShema);
 
 const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
+
+(async () => {
+  try {
+    await moongose.connect(config["db-key"], {
+      useNewUrlParser: true,
+      useUnifiedTopology: true      
+    })
+  } catch (err) {
+    throw new Error(err);
+  }
+})();
+
+const user1 = new User1({telegramId: 1234});
+//user1.save();
 
 // Project data by metadata
 
@@ -58,6 +75,33 @@ const groupedByField = (arr, key) => {
   });
   return result;
 };
+
+const findUser = (finder, newShema, Shema) => {
+  let res;
+  Shema.findOne(finder)
+    .then(data => {
+      if (data){
+        data.list = {ma :12};
+        res = data;
+        //console.log(res._doc);
+      }
+      else {
+        res = new Shema(newShema);
+      }
+      res.save();
+    })
+    .catch(err => {
+      throw new Error(err);
+    })
+  return res;
+}
+
+const res = findUser({ telegramId: 12234 }, { telegramId: 12234, list : {name:32}}, User1);
+
+
+User1.find({telegramId: 12234}).then(data => console.log(data));
+
+
 
 const keyboard = Markup.inlineKeyboard([
   Markup.callbackButton('⬅', 'left'),

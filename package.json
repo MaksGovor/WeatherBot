@@ -28,6 +28,7 @@
   "homepage": "https://github.com/MaksGovor/WeatherBot#readme",
   "dependencies": {
     "eslint": "^6.8.0",
+    "mongoose": "^5.9.12",
     "telegraf": "^3.38.0"
   }
 }

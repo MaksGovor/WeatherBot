@@ -8,5 +8,6 @@
     "username": "WeatherYMH",        
     "channelMode": false
   },
-  "api-key": "5f9e80241a8873c5ce42fb3fde7cba6b"
+  "api-key": "5f9e80241a8873c5ce42fb3fde7cba6b",
+  "db-key": "mongodb+srv://maksgovor:1q2w3e4r@cluster0-9xphr.mongodb.net/users?retryWrites=true&w=majority"
 }
