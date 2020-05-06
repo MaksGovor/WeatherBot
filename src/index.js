@@ -8,19 +8,18 @@ const config = require('./config.json');
 
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
-const List = require('./list.js');
+const {pop, shift} = require('./list.js');
 
 const { helper } = require('./display.js');
 const commands = require('./answers.json');
 const fetch = require('./fetch.js');
 const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./metaData.js');
-const User = require('./user.js');
 const UserShema = require('./models/user.js');
 
 const TOKEN = process.env.BOT_TOKEN || config.token;
 const apiKey = config['api-key'];
 const bot = new Telegraf(TOKEN, config.options);
-const User1 = moongose.model('users', UserShema);
+const User = moongose.model('users', UserShema);
 
 const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
 
@@ -35,7 +34,6 @@ const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
   }
 })();
 
-User1.find({telegramId: 692827211}).then(d => console.log(d));
 // Project data by metadata
 
 const projection = metadata => {
@@ -96,9 +94,6 @@ const updateData = (finder, newShema, Shema) => {
   return res;
 }
 
-//const k  = updateData({telegramId: 111}, {telegramId:111, component: {aaa: 1}, last: 'aua'}, User1, {component: {aa: 'aaa'}});
-
-//const f = updateData({telegramId: 12234}, {telegramId: 12234, component: {me: 'be'}, last: 'Chui'}, User1, {component: {fa: 14}})
 
 
 const keyboard = Markup.inlineKeyboard([
@@ -109,7 +104,6 @@ const keyboard = Markup.inlineKeyboard([
 const project5D = projection(mdFor5Day);
 const projectTD = projection(mdThisTimeWeather);
 const projectCV19 = projection(mdCovid19);
-const user = new User();
 
 // Bot functions
 
@@ -121,7 +115,7 @@ bot.on('location', ctx => {
   const telegramId = ctx.update.message.from.id;
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
     .then(data => {
-      updateData({telegramId}, {telegramId, component: {}, last: data.name}, User1);
+      updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
       ctx.reply(helper(projectTD(data)));
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
@@ -131,13 +125,13 @@ bot.command('weather', async ctx => {
   let text = getTownFromMsg(ctx.message.text);
   const telegramId = ctx.update.message.from.id;
   if (!text){
-      text = await User1.findOne({telegramId})
+      text = await User.findOne({telegramId})
         .then(data => data ? data.last : '')
         .catch(err => ctx.reply('!!!Error ' + err.message));
   };
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
-      updateData({telegramId}, {telegramId, component: {}, last: data.name}, User1);
+      updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
       ctx.reply(helper(projectTD(data)));
       const text = data.sys.country;
       fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
@@ -153,25 +147,22 @@ bot.command('weather5days', async ctx => {
   const telegramId = ctx.update.message.from.id;
   let text;
   if (!text){
-    text = await User1.findOne({telegramId})
+    text = await User.findOne({telegramId})
       .then(data => data ? data.last : '')
       .catch(err => ctx.reply('!!!Error ' + err.message));
   }
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
     .then( data => {
       const parseData = project5D(data);
-      user.last = parseData.city.name;
       const grouped = groupedByField(parseData.list, 'date');
       const loggered = grouped.map(group =>
         group
           .map(helper)
           .join('\n' + '_'.repeat(40) + '\n'));
-      const list = new List();
-      loggered.forEach(comp => list.push(comp));
-      user.component = list.first;
       (async () => {
       await ctx.reply('🌇 City: ' + parseData.city.name);
-      await ctx.telegram.sendMessage(ctx.chat.id, user.component.data, Extra.markup(keyboard));
+      await ctx.telegram.sendMessage(ctx.chat.id, shift(loggered), Extra.markup(keyboard));
+      updateData({telegramId}, {telegramId, component: loggered, last: parseData.city.name}, User);
       })();
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
@@ -180,20 +171,28 @@ bot.command('weather5days', async ctx => {
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
 bot.action('right', async ctx => {
+  const telegramId = ctx.update.callback_query.message.chat.id;
+  const data = await User.findOne({telegramId})
+    .then(data => data ? data : null)
+    .catch(err => ctx.reply('!!!Error ' + err.message));
   try {
-    user.component = user.component.next ? user.component.next : user.component.list.first;
     const msgId = ctx.update.callback_query.message.message_id;
-    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, user.component.data, Extra.markup(keyboard));
+    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, shift(data.component), Extra.markup(keyboard));
+    updateData({telegramId}, {telegramId, component: data.component, last: data.last}, User);
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
 });
 
 bot.action('left', async ctx => {
+  const telegramId = ctx.update.callback_query.message.chat.id;
+  const data = await User.findOne({telegramId})
+    .then(data => data ? data : null)
+    .catch(err => ctx.reply('!!!Error ' + err.message));
   try {
-    user.component = user.component.prev ? user.component.prev : user.component.list.last;
     const msgId = ctx.update.callback_query.message.message_id;
-    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, user.component.data, Extra.markup(keyboard));
+    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, shift(data.component), Extra.markup(keyboard));
+    updateData({telegramId}, {telegramId, component: data.component, last: data.last}, User);
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
