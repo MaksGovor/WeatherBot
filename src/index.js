@@ -145,7 +145,7 @@ bot.command('weather', async ctx => {
 
 bot.command('weather5days', async ctx => {
   const telegramId = ctx.update.message.from.id;
-  let text;
+  let text = getTownFromMsg(ctx.message.text);
   if (!text){
     text = await User.findOne({telegramId})
       .then(data => data ? data.last : '')
