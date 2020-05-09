@@ -3,15 +3,14 @@
 const { Telegraf } = require('telegraf');
 const request = require('request');
 const moongose = require('mongoose');
-
-const config = require('./config.json');
-
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
-const {pop, shift} = require('./list.js');
 
-const { helper } = require('./display.js');
 const commands = require('./answers.json');
+const config = require('./config.json');
+
+const { maybe, path } = require('./maybe.js');
+const { helper } = require('./display.js');
 const fetch = require('./fetch.js');
 const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./metaData.js');
 const UserShema = require('./models/user.js');
