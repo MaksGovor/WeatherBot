@@ -10,7 +10,7 @@ const maybe = x => {
 
 const path = data => (
   path => (
-    fp.maybe(path)(path => (
+    maybe(path)(path => (
       path.split('.').reduce(
         (prev, key) => (prev[key] || {}),
         (data || {})

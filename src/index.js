@@ -115,7 +115,7 @@ bot.on('location', ctx => {
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
     .then(data => {
       updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
-      ctx.reply(helper(projectTD(data)));
+      ctx.reply(maybe(data)(projectTD)(helper).getData());
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
@@ -131,7 +131,7 @@ bot.command('weather', async ctx => {
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
       updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
-      ctx.reply(helper(projectTD(data)));
+      ctx.reply(maybe(data)(projectTD)(helper).getData());
       const text = data.sys.country;
       fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
         .then(data => {
