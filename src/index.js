@@ -10,6 +10,7 @@ const commands = require('./answers.json');
 const config = require('./config.json');
 
 const { maybe, path } = require('./maybe.js');
+const {pop, shift} = require('./list.js');
 const { helper } = require('./display.js');
 const fetch = require('./fetch.js');
 const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./metaData.js');
@@ -115,7 +116,7 @@ bot.on('location', ctx => {
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
     .then(data => {
       updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
-      ctx.reply(maybe(data)(projectTD)(helper).getData());
+      ctx.reply(maybe(data)(projectTD).chain(helper));
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
@@ -131,11 +132,11 @@ bot.command('weather', async ctx => {
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
       updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
-      ctx.reply(maybe(data)(projectTD)(helper).getData());
+      ctx.reply(maybe(data)(projectTD).chain(helper));
       const text = data.sys.country;
       fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
         .then(data => {
-          ctx.reply('❗BE CAREFUL❗\nCOVID-19 in your counrty\n' + helper(projectCV19(data.pop())));
+          ctx.reply(commands.cv19 + maybe(data.pop())(projectCV19).chain(helper));
         })
         .catch(err => ctx.reply('!!!Error ' + err.message));
     })
@@ -152,16 +153,15 @@ bot.command('weather5days', async ctx => {
   }
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
     .then( data => {
-      const parseData = project5D(data);
-      const grouped = groupedByField(parseData.list, 'date');
-      const loggered = grouped.map(group =>
-        group
-          .map(helper)
-          .join('\n' + '_'.repeat(40) + '\n'));
+      const loggered = maybe(data)
+        .map(project5D)
+        .map(d => groupedByField(d.list, 'date'))
+        .map(d => d.map(gr => gr.map(helper)))
+        .chain(d => d.map(gr => gr.join('\n' + '_'.repeat(40) + '\n')));
       (async () => {
-      await ctx.reply('🌇 City: ' + parseData.city.name);
+      await ctx.reply('🌇 City: ' + data.city.name);
       await ctx.telegram.sendMessage(ctx.chat.id, loggered[0], Extra.markup(keyboard));
-      updateData({telegramId}, {telegramId, component: loggered, last: parseData.city.name}, User);
+      updateData({telegramId}, {telegramId, component: loggered, last: data.city.name}, User);
       })();
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
