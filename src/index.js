@@ -112,18 +112,18 @@ bot.help(ctx => ctx.reply(commands.help));
 
 bot.on('location', ctx => {
   const { latitude, longitude } = ctx.message.location;
-  const telegramId = ctx.update.message.from.id;
+  const telegramId = path(ctx)('update.message.from.id').getData(); 
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
     .then(data => {
       updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
-      ctx.reply(maybe(data)(projectTD).chain(helper));
+      maybe(data)(projectTD)(helper)(ctx.reply);
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
 bot.command('weather', async ctx => {
   let text = getTownFromMsg(ctx.message.text);
-  const telegramId = ctx.update.message.from.id;
+  const telegramId = path(ctx)('update.message.from.id').getData();
   if (!text){
       text = await User.findOne({telegramId})
         .then(data => data ? data.last : '')
@@ -131,8 +131,8 @@ bot.command('weather', async ctx => {
   };
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
+      maybe(data)(projectTD)(helper)(ctx.reply);
       updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
-      ctx.reply(maybe(data)(projectTD).chain(helper));
       const text = data.sys.country;
       fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
         .then(data => {
@@ -144,7 +144,7 @@ bot.command('weather', async ctx => {
 });
 
 bot.command('weather5days', async ctx => {
-  const telegramId = ctx.update.message.from.id;
+  const telegramId = path(ctx)('update.message.from.id').getData();
   let text = getTownFromMsg(ctx.message.text);
   if (!text){
     text = await User.findOne({telegramId})
@@ -170,12 +170,12 @@ bot.command('weather5days', async ctx => {
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
 bot.action('right', async ctx => {
-  const telegramId = ctx.update.callback_query.message.chat.id;
+  const telegramId = path(ctx)('update.callback_query.message.chat.id').getData();
   const data = await User.findOne({telegramId})
     .then(data => data ? data : null)
     .catch(err => ctx.reply('!!!Error ' + err.message));
   try {
-    const msgId = ctx.update.callback_query.message.message_id;
+    const msgId = path(ctx)('update.callback_query.message.message_id').getData();
     await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, shift(data.component)[0], Extra.markup(keyboard));
     updateData({telegramId}, {telegramId, component: data.component, last: data.last}, User);
   } catch (err) {
@@ -184,12 +184,12 @@ bot.action('right', async ctx => {
 });
 
 bot.action('left', async ctx => {
-  const telegramId = ctx.update.callback_query.message.chat.id;
+  const telegramId = path(ctx)('update.callback_query.message.chat.id').getData();
   const data = await User.findOne({telegramId})
     .then(data => data ? data : null)
     .catch(err => ctx.reply('!!!Error ' + err.message));
   try {
-    const msgId = ctx.update.callback_query.message.message_id;
+    const msgId = path(ctx)('update.callback_query.message.message_id').getData();
     await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, pop(data.component)[0], Extra.markup(keyboard));
     updateData({telegramId}, {telegramId, component: data.component, last: data.last}, User);
   } catch (err) {
