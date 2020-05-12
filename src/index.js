@@ -94,8 +94,6 @@ const updateData = (finder, newShema, Shema) => {
   return res;
 }
 
-
-
 const keyboard = Markup.inlineKeyboard([
   Markup.callbackButton('⬅', 'left'),
   Markup.callbackButton('➡', 'right'),
@@ -170,7 +168,7 @@ bot.command('weather5days', async ctx => {
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
 bot.action('right', async ctx => {
-  const telegramId = path(ctx)('update.callback_query.message.chat.id').getData();
+  const telegramId = path(ctx)('update.callback_query.from.id').getData();
   const data = await User.findOne({telegramId})
     .then(data => data ? data : null)
     .catch(err => ctx.reply('!!!Error ' + err.message));
@@ -184,7 +182,7 @@ bot.action('right', async ctx => {
 });
 
 bot.action('left', async ctx => {
-  const telegramId = path(ctx)('update.callback_query.message.chat.id').getData();
+  const telegramId = path(ctx)('update.callback_query.from.id').getData();
   const data = await User.findOne({telegramId})
     .then(data => data ? data : null)
     .catch(err => ctx.reply('!!!Error ' + err.message));
