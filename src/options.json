@@ -1,0 +1,8 @@
+{
+  "telegram": {           
+    "agent": null,        
+    "webhookReply": true  
+  },
+  "username": "WeatherYMH",        
+  "channelMode": false
+}

@@ -7,8 +7,9 @@ const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 
 const commands = require('./answers.json');
-const config = require('./config.json');
+const options = require('./options.json');
 
+const { token, apiKey, dbKey } = require('./config')
 const { maybe, path } = require('./maybe.js');
 const {pop, shift} = require('./list.js');
 const { helper } = require('./display.js');
@@ -16,16 +17,14 @@ const fetch = require('./fetch.js');
 const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./metaData.js');
 const UserShema = require('./models/user.js');
 
-const TOKEN = process.env.BOT_TOKEN || config.token;
-const apiKey = config['api-key'];
-const bot = new Telegraf(TOKEN, config.options);
+const bot = new Telegraf(token, options);
 const User = moongose.model('users', UserShema);
 
 const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
 
 (async () => {
   try {
-    await moongose.connect(config["db-key"], {
+    await moongose.connect(dbKey, {
       useNewUrlParser: true,
       useUnifiedTopology: true      
     })
