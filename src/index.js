@@ -1,7 +1,6 @@
 'use strict';
 
 const { Telegraf } = require('telegraf');
-const request = require('request');
 const moongose = require('mongoose');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
