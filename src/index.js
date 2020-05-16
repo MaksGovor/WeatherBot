@@ -8,7 +8,8 @@ const Markup = require('telegraf/markup');
 const commands = require('./answers.json');
 const options = require('./options.json');
 
-const { token, apiKey, dbKey } = require('./config')
+const { token, apiKey, dbKey } = require('./config.js');
+const EventEmitter = require('./EventEmitter/EventEmitter.js')
 const { maybe, path } = require('./maybe.js');
 const {pop, shift} = require('./list.js');
 const { helper } = require('./display.js');
@@ -129,7 +130,7 @@ bot.command('weather', async ctx => {
     .then(data => {
       maybe(data)(projectTD)(helper)(ctx.reply);
       updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
-      const text = data.sys.country;
+      const text = path(data)('sys.country').getData();
       fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
         .then(data => {
           ctx.reply(commands.cv19 + maybe(data.pop())(projectCV19).chain(helper));
