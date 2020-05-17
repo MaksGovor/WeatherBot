@@ -19,8 +19,7 @@ const UserShema = require('./models/user.js');
 
 const bot = new Telegraf(token, options);
 const User = moongose.model('users', UserShema);
-
-const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
+const ee = new EventEmitter();
 
 (async () => {
   try {
@@ -32,6 +31,8 @@ const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
     throw new Error(err);
   }
 })();
+
+const getTownFromMsg = msg => msg.split(' ').slice(1).join(' ');
 
 // Project data by metadata
 
@@ -71,6 +72,8 @@ const groupedByField = (arr, key) => {
   return result;
 };
 
+// Updating data about user in database
+
 const updateData = (finder, newShema, Shema) => {
   let res;
   Shema.findOne(finder)
@@ -92,6 +95,8 @@ const updateData = (finder, newShema, Shema) => {
     })
   return res;
 }
+
+// Main
 
 const keyboard = Markup.inlineKeyboard([
   Markup.callbackButton('⬅', 'left'),
@@ -122,9 +127,9 @@ bot.command('weather', async ctx => {
   let text = getTownFromMsg(ctx.message.text);
   const telegramId = path(ctx)('update.message.from.id').getData();
   if (!text){
-      text = await User.findOne({telegramId})
-        .then(data => data ? data.last : '')
-        .catch(err => ctx.reply('!!!Error ' + err.message));
+    text = await User.findOne({telegramId})
+      .then(data => data ? data.last : '')
+      .catch(err => ctx.reply('!!!Error ' + err.message));
   };
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {

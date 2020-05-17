@@ -5,10 +5,14 @@ function EventEmitter () {
   this.wrappers = new Map();
 }
 
-EventEmitter.prototype.on = function(name, fn) {
-  const event = this.events.get(name);
-  if (event) event.add(fn);
-  else this.events.set(name, new Set([fn]));
+EventEmitter.prototype.on = function(...args) {
+  const fn = args.pop();
+  if (typeof fn !== 'function') return;
+  for (const name of args) {
+    const event = this.events.get(name);
+    if (event) event.add(fn);
+    else this.events.set(name, new Set([fn]));
+  }
 };
 
 EventEmitter.prototype.emit = function(name, ...data) {
