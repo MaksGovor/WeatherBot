@@ -5,16 +5,16 @@ const moongose = require('mongoose');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 
-const commands = require('./answers.json');
-const options = require('./options.json');
+const commands = require('./data/answers.json');
+const options = require('./data/options.json');
 
-const { token, apiKey, dbKey } = require('./config.js');
-const EventEmitter = require('./EventEmitter/EventEmitter.js')
-const { maybe, path } = require('./maybe.js');
-const {pop, shift} = require('./list.js');
-const { helper } = require('./display.js');
-const fetch = require('./fetch.js');
-const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./metaData.js');
+const { token, apiKey, dbKey } = require('./data/config.js');
+const EventEmitter = require('./lib/EventEmitter.js')
+const { maybe, path } = require('./lib/maybe.js');
+const {pop, shift} = require('./lib/list.js');
+const { helper } = require('./lib/display.js');
+const fetch = require('./lib/fetch.js');
+const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./data/metaData.js');
 const UserShema = require('./models/user.js');
 
 const bot = new Telegraf(token, options);
