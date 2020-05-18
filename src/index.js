@@ -9,9 +9,9 @@ const commands = require('./data/answers.json');
 const options = require('./data/options.json');
 
 const { token, apiKey, dbKey } = require('./data/config.js');
-const EventEmitter = require('./lib/EventEmitter.js')
+const EventEmitter = require('./lib/EventEmitter.js');
 const { maybe, path } = require('./lib/maybe.js');
-const {pop, shift} = require('./lib/list.js');
+const { pop, shift } = require('./lib/list.js');
 const { helper } = require('./lib/display.js');
 const fetch = require('./lib/fetch.js');
 const { mdThisTimeWeather, mdFor5Day, mdCovid19 } = require('./data/metaData.js');
@@ -25,8 +25,8 @@ const ee = new EventEmitter();
   try {
     await moongose.connect(dbKey, {
       useNewUrlParser: true,
-      useUnifiedTopology: true      
-    })
+      useUnifiedTopology: true
+    });
   } catch (err) {
     throw new Error(err);
   }
@@ -82,19 +82,18 @@ const updateData = (finder, newShema, Shema) => {
         const keys = Object.keys(newShema);
         for (const key of keys) {
           data[key] = newShema[key];
-        }      
+        }
         res = data;
-      }
-      else {
+      } else {
         res = new Shema(newShema);
       }
       res.save();
     })
     .catch(err => {
       throw new Error(err);
-    })
+    });
   return res;
-}
+};
 
 // Main
 
@@ -114,10 +113,10 @@ bot.help(ctx => ctx.reply(commands.help));
 
 bot.on('location', ctx => {
   const { latitude, longitude } = ctx.message.location;
-  const telegramId = path(ctx)('update.message.from.id').getData(); 
+  const telegramId = path(ctx)('update.message.from.id').getData();
   fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
     .then(data => {
-      updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
+      updateData({ telegramId }, { telegramId, component: {}, last: data.name }, User);
       maybe(data)(projectTD)(helper)(ctx.reply);
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
@@ -126,15 +125,15 @@ bot.on('location', ctx => {
 bot.command('weather', async ctx => {
   let text = getTownFromMsg(ctx.message.text);
   const telegramId = path(ctx)('update.message.from.id').getData();
-  if (!text){
-    text = await User.findOne({telegramId})
-      .then(data => data ? data.last : '')
+  if (!text) {
+    text = await User.findOne({ telegramId })
+      .then(data => (data ? data.last : ''))
       .catch(err => ctx.reply('!!!Error ' + err.message));
-  };
+  }
   fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
       maybe(data)(projectTD)(helper)(ctx.reply);
-      updateData({telegramId}, {telegramId, component: {}, last: data.name}, User);
+      updateData({ telegramId }, { telegramId, component: {}, last: data.name }, User);
       const text = path(data)('sys.country').getData();
       fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
         .then(data => {
@@ -148,22 +147,22 @@ bot.command('weather', async ctx => {
 bot.command('weather5days', async ctx => {
   const telegramId = path(ctx)('update.message.from.id').getData();
   let text = getTownFromMsg(ctx.message.text);
-  if (!text){
-    text = await User.findOne({telegramId})
-      .then(data => data ? data.last : '')
+  if (!text) {
+    text = await User.findOne({ telegramId })
+      .then(data => (data ? data.last : ''))
       .catch(err => ctx.reply('!!!Error ' + err.message));
   }
   fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
-    .then( data => {
+    .then(data => {
       const loggered = maybe(data)
         .map(project5D)
         .map(d => groupedByField(d.list, 'date'))
         .map(d => d.map(gr => gr.map(helper)))
         .chain(d => d.map(gr => gr.join('\n' + '_'.repeat(40) + '\n')));
       (async () => {
-      await ctx.reply('🌇 City: ' + data.city.name);
-      await ctx.telegram.sendMessage(ctx.chat.id, loggered[0], Extra.markup(keyboard));
-      updateData({telegramId}, {telegramId, component: loggered, last: data.city.name}, User);
+        await ctx.reply('🌇 City: ' + data.city.name);
+        await ctx.telegram.sendMessage(ctx.chat.id, loggered[0], Extra.markup(keyboard));
+        updateData({ telegramId }, { telegramId, component: loggered, last: data.city.name }, User);
       })();
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
@@ -173,13 +172,15 @@ bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
 bot.action('right', async ctx => {
   const telegramId = path(ctx)('update.callback_query.from.id').getData();
-  const data = await User.findOne({telegramId})
-    .then(data => data ? data : null)
+  const data = await User.findOne({ telegramId })
+    .then(data => (data ? data : null))
     .catch(err => ctx.reply('!!!Error ' + err.message));
   try {
     const msgId = path(ctx)('update.callback_query.message.message_id').getData();
-    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, shift(data.component)[0], Extra.markup(keyboard));
-    updateData({telegramId}, {telegramId, component: data.component, last: data.last}, User);
+    await ctx
+      .telegram
+      .editMessageText(ctx.chat.id, msgId, msgId, shift(data.component)[0], Extra.markup(keyboard));
+    updateData({ telegramId }, { telegramId, component: data.component, last: data.last }, User);
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
@@ -187,13 +188,15 @@ bot.action('right', async ctx => {
 
 bot.action('left', async ctx => {
   const telegramId = path(ctx)('update.callback_query.from.id').getData();
-  const data = await User.findOne({telegramId})
-    .then(data => data ? data : null)
+  const data = await User.findOne({ telegramId })
+    .then(data => (data ? data : null))
     .catch(err => ctx.reply('!!!Error ' + err.message));
   try {
     const msgId = path(ctx)('update.callback_query.message.message_id').getData();
-    await ctx.telegram.editMessageText(ctx.chat.id, msgId, msgId, pop(data.component)[0], Extra.markup(keyboard));
-    updateData({telegramId}, {telegramId, component: data.component, last: data.last}, User);
+    await ctx
+      .telegram
+      .editMessageText(ctx.chat.id, msgId, msgId, pop(data.component)[0], Extra.markup(keyboard));
+    updateData({ telegramId }, { telegramId, component: data.component, last: data.last }, User);
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
