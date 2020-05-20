@@ -58,7 +58,7 @@ const projection = metadata => {
   return mapper;
 };
 
-// Make groups by a common field
+// Make groups of objects by a common field
 
 const groupedByField = (arr, key) => {
   const groups = new Object(), result = new Array();
@@ -94,6 +94,24 @@ const updateData = (finder, newShema, Shema) => {
     });
   return res;
 };
+
+// 
+
+const sweip = async (ctx, sweiper) => {
+  const telegramId = path(ctx)('update.callback_query.from.id').getData();
+  const data = await User.findOne({ telegramId })
+    .then(data => (data ? data : null))
+    .catch(err => ctx.reply('!!!Error ' + err.message));
+  try {
+    const msgId = path(ctx)('update.callback_query.message.message_id').getData();
+    await ctx
+      .telegram
+      .editMessageText(ctx.chat.id, msgId, msgId, sweiper(data.component)[0], Extra.markup(keyboard));
+    updateData({ telegramId }, { telegramId, component: data.component, last: data.last }, User);
+  } catch (err) {
+    await ctx.reply('!!!Error ' + err.message);
+  }
+}
 
 // Main
 
@@ -170,36 +188,12 @@ bot.command('weather5days', async ctx => {
 
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
-bot.action('right', async ctx => {
-  const telegramId = path(ctx)('update.callback_query.from.id').getData();
-  const data = await User.findOne({ telegramId })
-    .then(data => (data ? data : null))
-    .catch(err => ctx.reply('!!!Error ' + err.message));
-  try {
-    const msgId = path(ctx)('update.callback_query.message.message_id').getData();
-    await ctx
-      .telegram
-      .editMessageText(ctx.chat.id, msgId, msgId, shift(data.component)[0], Extra.markup(keyboard));
-    updateData({ telegramId }, { telegramId, component: data.component, last: data.last }, User);
-  } catch (err) {
-    await ctx.reply('!!!Error ' + err.message);
-  }
+bot.action('right', ctx => {
+  sweip(ctx, shift)
 });
 
-bot.action('left', async ctx => {
-  const telegramId = path(ctx)('update.callback_query.from.id').getData();
-  const data = await User.findOne({ telegramId })
-    .then(data => (data ? data : null))
-    .catch(err => ctx.reply('!!!Error ' + err.message));
-  try {
-    const msgId = path(ctx)('update.callback_query.message.message_id').getData();
-    await ctx
-      .telegram
-      .editMessageText(ctx.chat.id, msgId, msgId, pop(data.component)[0], Extra.markup(keyboard));
-    updateData({ telegramId }, { telegramId, component: data.component, last: data.last }, User);
-  } catch (err) {
-    await ctx.reply('!!!Error ' + err.message);
-  }
+bot.action('left', ctx => {
+  sweip(ctx, pop);
 });
 
 bot.launch();
