@@ -21,7 +21,7 @@
     "weather-bot"
   ],
   "author": "MaksGovor (https://github.com/MaksGovor)",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/MaksGovor/WeatherBot/issues"
   },
@@ -30,7 +30,7 @@
     "dotenv": "^8.2.0",
     "eslint": "^6.8.0",
     "mongoose": "^5.9.12",
-    "nodemon": "^2.0.3",
+    "nodemon": "^2.0.4",
     "telegraf": "^3.38.0"
   }
 }

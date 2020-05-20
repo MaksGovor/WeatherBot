@@ -6,7 +6,7 @@ const fetch = url => new Promise((resolve, reject) => {
   https.get(url, res => {
     const code = res.statusCode;
     if (code !== 200)
-      return reject(new Error(`HTTP status code ${code}`));
+      return reject(new Error(`HTTPS status code ${code}`));
     res.on('error', reject);
     const chunks = new Array();
     res.on('data', chunk => {

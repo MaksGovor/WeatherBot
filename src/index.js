@@ -188,12 +188,8 @@ bot.command('weather5days', async ctx => {
 
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
-bot.action('right', ctx => {
-  sweip(ctx, shift)
-});
+bot.action('right', ctx => sweip(ctx, shift));
 
-bot.action('left', ctx => {
-  sweip(ctx, pop);
-});
+bot.action('left', ctx => sweip(ctx, pop));
 
 bot.launch();
