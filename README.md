@@ -32,11 +32,17 @@ Hey, this bot is used to get **weather data**.
 ## Example bot response
 
 - **Current weather**
+
  ![Weather](https://github.com/MaksGovor/Images/blob/master/WeatherBot/weather.PNG)
+ 
 - **Weather for 5 days** 
+
  ![Weather5days](https://github.com/MaksGovor/Images/blob/master/WeatherBot/weather5days.jpeg)
+ 
 - **By location** 
+
  ![Location](https://github.com/MaksGovor/Images/blob/master/WeatherBot/loc.PNG)
+ 
 ## License
 
 ![GitHub](https://img.shields.io/github/license/MaksGovor/WeatherBot)
