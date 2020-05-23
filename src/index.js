@@ -4,6 +4,7 @@ const { Telegraf } = require('telegraf');
 const moongose = require('mongoose');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
+const Scene = require('telegraf/scenes/base');
 
 const commands = require('./data/answers.json');
 const options = require('./data/options.json');
@@ -113,6 +114,8 @@ const sweip = async (ctx, sweiper) => {
   }
 }
 
+//
+
 // Main
 
 const keyboard = Markup.inlineKeyboard([
@@ -189,6 +192,8 @@ bot.command('weather5days', async ctx => {
     })
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
+
+bot.command('weatherReport', ctx => console.log(ctx));
 
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 
