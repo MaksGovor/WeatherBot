@@ -204,9 +204,9 @@ bot.command('weather5days', async ctx => {
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
-bot.command('weatherReport', ctx => ctx.scene.enter('weatherReport'));
+bot.command('weathercomment', ctx => ctx.scene.enter('weatherComment'));
 
-bot.command('/reviews', async ctx => {
+bot.command('reviews', async ctx => {
   const telegramId = path(ctx)('update.message.from.id').getData();
   let text = getTownFromMsg(ctx.message.text);
   if (!text) {
@@ -219,27 +219,31 @@ bot.command('/reviews', async ctx => {
 
 // Scenes
 
-const weatherReport = new Scene('weatherReport');
+const weatherComment = new Scene('weatherComment');
 
-weatherReport.enter(ctx => ctx.reply(commands.report));
+weatherComment.enter(ctx => ctx.reply(commands.comment));
 
-weatherReport.on('message', async ctx => {
-  const telegramId = path(ctx)('update.message.from.id').getData();
+weatherComment.on('message', async ctx => {
   const text = path(ctx)('update.message.text').getData();
+  if (text === '/cancel') {
+    ctx.scene.leave();
+    return;
+  }
+  const telegramId = path(ctx)('update.message.from.id').getData();
   const from = path(ctx)('update.message.from.username').getData();
-  const answer = `${text}\nFrom: @${from}\nToday at ${new Date().toLocaleTimeString()}`;
+  const answer = `${text || 'Noname'}\nFrom: @${from}\nToday at ${new Date().toLocaleTimeString()}`;
   const city = await User.findOne({ telegramId })
     .then(data => (data ? data.last : ''))
     .catch(err => ctx.reply('!!!Error ' + err.message));
   ee.limit(city, logger => logger(answer), getTomorrow())
-  ctx.scene.leave()
+  ctx.scene.leave();
 })
 
-weatherReport.leave((ctx) => ctx.reply(commands.leave));
+weatherComment.leave((ctx) => ctx.reply(commands.leave));
 
 // Scene registration
 
-stage.register(weatherReport);
+stage.register(weatherComment);
 stage.command('cancel', leave());
 
 // Actions
