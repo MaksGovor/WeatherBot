@@ -1,10 +1,12 @@
 'use strict';
 
 const { Telegraf } = require('telegraf');
-const moongose = require('mongoose');
 const Extra = require('telegraf/extra');
 const Markup = require('telegraf/markup');
 const Scene = require('telegraf/scenes/base');
+const Stage = require('telegraf/stage');
+const session = require('telegraf/session');
+const moongose = require('mongoose');
 
 const commands = require('./data/answers.json');
 const options = require('./data/options.json');
@@ -20,6 +22,8 @@ const UserShema = require('./models/user.js');
 
 const bot = new Telegraf(token, options);
 const User = moongose.model('users', UserShema);
+const { leave } = Stage;
+const stage = new Stage();
 const ee = new EventEmitter();
 
 (async () => {
@@ -112,9 +116,13 @@ const sweip = async (ctx, sweiper) => {
   } catch (err) {
     await ctx.reply('!!!Error ' + err.message);
   }
-}
+};
 
-//
+const getTomorrow = () => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow.toLocaleDateString();
+}
 
 // Main
 
@@ -132,6 +140,9 @@ const projectTD = projection(mdThisTimeWeather);
 const projectCV19 = projection(mdCovid19);
 
 // Bot functions
+
+bot.use(session());
+bot.use(stage.middleware());
 
 bot.start(ctx => ctx.reply(commands.start));
 bot.help(ctx => ctx.telegram.sendMessage(ctx.chat.id, commands.help, Extra.markup(locationButton)));
@@ -193,7 +204,45 @@ bot.command('weather5days', async ctx => {
     .catch(err => ctx.reply('!!!Error ' + err.message));
 });
 
-bot.command('weatherReport', ctx => console.log(ctx));
+bot.command('weatherReport', ctx => ctx.scene.enter('weatherReport'));
+
+bot.command('/reviews', async ctx => {
+  const telegramId = path(ctx)('update.message.from.id').getData();
+  let text = getTownFromMsg(ctx.message.text);
+  if (!text) {
+    text = await User.findOne({ telegramId })
+      .then(data => (data ? data.last : ''))
+      .catch(err => ctx.reply('!!!Error ' + err.message));
+  }
+  ee.emit(text, ctx.reply)
+})
+
+// Scenes
+
+const weatherReport = new Scene('weatherReport');
+
+weatherReport.enter(ctx => ctx.reply(commands.report));
+
+weatherReport.on('message', async ctx => {
+  const telegramId = path(ctx)('update.message.from.id').getData();
+  const text = path(ctx)('update.message.text').getData();
+  const from = path(ctx)('update.message.from.username').getData();
+  const answer = `${text}\nFrom: @${from}\nToday at ${new Date().toLocaleTimeString()}`;
+  const city = await User.findOne({ telegramId })
+    .then(data => (data ? data.last : ''))
+    .catch(err => ctx.reply('!!!Error ' + err.message));
+  ee.limit(city, logger => logger(answer), getTomorrow())
+  ctx.scene.leave()
+})
+
+weatherReport.leave((ctx) => ctx.reply(commands.leave));
+
+// Scene registration
+
+stage.register(weatherReport);
+stage.command('cancel', leave());
+
+// Actions
 
 bot.action('delete', ({ deleteMessage }) => deleteMessage());
 

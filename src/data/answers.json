@@ -2,5 +2,7 @@
   "start": "Hi, I'm a bot that will show you the weather anywhere in the world.\nFor now I can only show the weather by the exact name of the city, but I hope to be able to recognize any values soon.\nUse the command /help to show the instructions.\nMy creator is @MaksGovorrr.",
   "help": "I have three teams so far.\nIt's very simple:\n/weather + {city name} to show the weather in this part of the world right now.\n/weather5days + {city name} - show the weather for 5 days, you can flick through the days with arrows.\nYou can also send me the location",
   "empty_command": "You must enter /weather and the city name.\nLike /weather London.\nOr you can send the location right now and I'll remember your city for all the next teams until you change it yourself.",
-  "cv19": "❗BE CAREFUL❗\nCOVID-19 in your counrty\n"
+  "cv19": "❗BE CAREFUL❗\nCOVID-19 in your counrty\n",
+  "report": "Now write a message to alert other users from your city to the danger.\nBut remember the rules of etiquette.\nYou can override this by using the command /cancel.",
+  "leave": "Well, your answer is well received."
 }

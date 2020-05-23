@@ -52,11 +52,8 @@ EventEmitter.prototype.once = function(name, fn) {
 
 EventEmitter.prototype.limit = function(name, fn, date) {
   const wrapper = (...args) => {
-    if (date === new Date().toLocaleDateString()){
-      //this.remove(name, wrapper);
-      //return;
-    }
-    fn(...args);
+    this.deleteMissed();
+    if (this.temporary.has(date)) fn(...args);
   };
   this.temporary.set(date, name);
   this.on(name, wrapper);
