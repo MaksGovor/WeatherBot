@@ -1,7 +1,7 @@
 'use strict';
 
 const mdFor5Day = {
-  list: ['list', { 
+  list: ['list', {
     temp: ['main', {
       average: ['temp', t => `🌡️ Average temperature: ${Math.round(+t - 273)}℃`],
       feelsLike: ['feels_like', t => `🌡️ Feels like temperature: ${Math.round(+t - 273)}℃`],
