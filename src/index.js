@@ -120,6 +120,10 @@ const keyboard = Markup.inlineKeyboard([
   Markup.callbackButton('➡', 'right'),
 ]);
 
+const locationButton = Markup.keyboard([
+  Markup.locationRequestButton('Send location'),
+])
+
 const project5D = projection(mdFor5Day);
 const projectTD = projection(mdThisTimeWeather);
 const projectCV19 = projection(mdCovid19);
@@ -127,7 +131,7 @@ const projectCV19 = projection(mdCovid19);
 // Bot functions
 
 bot.start(ctx => ctx.reply(commands.start));
-bot.help(ctx => ctx.reply(commands.help));
+bot.help(ctx => ctx.telegram.sendMessage(ctx.chat.id, commands.help, Extra.markup(locationButton)));
 
 bot.on('location', ctx => {
   const { latitude, longitude } = ctx.message.location;
