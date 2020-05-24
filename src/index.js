@@ -100,7 +100,7 @@ const updateData = (finder, newShema, Shema) => {
   return res;
 };
 
-// 
+//
 
 const sweip = async (ctx, sweiper) => {
   const telegramId = path(ctx)('update.callback_query.from.id').getData();
@@ -122,7 +122,7 @@ const getTomorrow = () => {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   return tomorrow.toLocaleDateString();
-}
+};
 
 // Main
 
@@ -133,7 +133,7 @@ const keyboard = Markup.inlineKeyboard([
 
 const locationButton = Markup.keyboard([
   Markup.locationRequestButton('Send location'),
-])
+]);
 
 const project5D = projection(mdFor5Day);
 const projectTD = projection(mdThisTimeWeather);
@@ -214,8 +214,8 @@ bot.command('reviews', async ctx => {
       .then(data => (data ? data.last : ''))
       .catch(err => ctx.reply('!!!Error ' + err.message));
   }
-  ee.emit(text, ctx.reply)
-})
+  ee.emit(text, ctx.reply);
+});
 
 // Scenes
 
@@ -231,15 +231,15 @@ weatherComment.on('message', async ctx => {
   }
   const telegramId = path(ctx)('update.message.from.id').getData();
   const from = path(ctx)('update.message.from.username').getData();
-  const answer = `${text || 'Noname'}\nFrom: @${from}\nToday at ${new Date().toLocaleTimeString()}`;
+  const answer = `${text}\nFrom: @${from || 'Noname'}\nToday at ${new Date().toLocaleTimeString()}`;
   const city = await User.findOne({ telegramId })
     .then(data => (data ? data.last : ''))
     .catch(err => ctx.reply('!!!Error ' + err.message));
-  ee.limit(city, logger => logger(answer), getTomorrow())
+  ee.limit(city, logger => logger(answer), getTomorrow());
   ctx.scene.leave();
-})
+});
 
-weatherComment.leave((ctx) => ctx.reply(commands.leave));
+weatherComment.leave(ctx => ctx.reply(commands.leave));
 
 // Scene registration
 
