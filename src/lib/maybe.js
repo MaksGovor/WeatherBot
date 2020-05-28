@@ -9,7 +9,7 @@ const maybe = x => {
 };
 
 const reducer = (prev, key) => (prev[key] || {});
-const fn = path => path.split('.').reduce(reducer, (data || {}));
-const path = data => path => maybe(path)(fn);
+const fn = (data, path) => path.split('.').reduce(reducer, (data || {}));
+const path = data => path => maybe(path)(fn.bind(null, data));
 
 module.exports = { maybe, path };
