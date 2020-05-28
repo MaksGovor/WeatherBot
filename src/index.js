@@ -33,7 +33,7 @@ const ee = new EventEmitter();
       useUnifiedTopology: true
     });
   } catch (err) {
-    throw new Error(err);
+    console.log(`Date base not connected.Error:${err.message}`);
   }
 })();
 
@@ -51,9 +51,12 @@ const projection = metadata => {
       let val = data[name];
       if (val) {
         if (transform) {
-          val = typeof transform === 'function' ?
-            transform(val) : Array.isArray(val) ?
+          if (typeof transform === 'function') {
+            val = transform(val);
+          } else {
+            val = Array.isArray(val) ?
               val.map(projection(transform)) : val = projection(transform)(val);
+          }
         }
         hash[key] = val;
       }
@@ -62,6 +65,7 @@ const projection = metadata => {
   };
   return mapper;
 };
+  
 
 // Make groups of objects by a common field
 
