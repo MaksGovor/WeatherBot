@@ -11,7 +11,7 @@ const moongose = require('mongoose');
 const commands = require('./data/answers.json');
 const options = require('./data/options.json');
 
-const { token, apiKey, dbKey } = require('./data/config.js');
+const { token, apiKey, dbUrl } = require('./data/config.js');
 const EventEmitter = require('./lib/EventEmitter.js');
 const { maybe, path } = require('./lib/maybe.js');
 const { pop, shift } = require('./lib/list.js');
@@ -28,7 +28,7 @@ const ee = new EventEmitter();
 
 (async () => {
   try {
-    await moongose.connect(dbKey, {
+    await moongose.connect(dbUrl, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
