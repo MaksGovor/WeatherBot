@@ -10,6 +10,7 @@ const moongose = require('mongoose');
 
 const commands = require('./data/answers.json');
 const options = require('./data/options.json');
+const links = require('./data/links.json');
 
 const { token, apiKey, dbUrl } = require('./data/config.js');
 const EventEmitter = require('./lib/EventEmitter.js');
@@ -65,7 +66,7 @@ const projection = metadata => {
   };
   return mapper;
 };
-  
+
 
 // Make groups of objects by a common field
 
@@ -156,7 +157,7 @@ bot.help(ctx => ctx.telegram.sendMessage(ctx.chat.id, commands.help, Extra.marku
 bot.on('location', ctx => {
   const { latitude, longitude } = ctx.message.location;
   const telegramId = path(ctx)('update.message.from.id').getData();
-  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
+  fetch(`${links.openWeatherMap}/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}`)
     .then(data => {
       updateData({ telegramId }, { telegramId, component: {}, last: data.name }, User);
       maybe(data)(projectTD)(helper)(ctx.reply);
@@ -172,12 +173,12 @@ bot.command('weather', async ctx => {
       .then(data => (data ? data.last : ''))
       .catch(err => ctx.reply('!!!Error ' + err.message));
   }
-  fetch(`https://api.openweathermap.org/data/2.5/weather?q=${text}&appid=${apiKey}`)
+  fetch(`${links.openWeatherMap}/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
       maybe(data)(projectTD)(helper)(ctx.reply);
       updateData({ telegramId }, { telegramId, component: {}, last: data.name }, User);
       const text = path(data)('sys.country').getData();
-      fetch(`https://api.covid19api.com/total/dayone/country/${text}`)
+      fetch(`${links.postmanCV19}/${text}`)
         .then(data => {
           ctx.reply(commands.cv19 + maybe(data.pop())(projectCV19).chain(helper));
         })
@@ -194,7 +195,7 @@ bot.command('weather5days', async ctx => {
       .then(data => (data ? data.last : ''))
       .catch(err => ctx.reply('!!!Error ' + err.message));
   }
-  fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${text}&appid=${apiKey}`)
+  fetch(`${links.openWeatherMap}/forecast?q=${text}&appid=${apiKey}`)
     .then(data => {
       const loggered = maybe(data)
         .map(project5D)

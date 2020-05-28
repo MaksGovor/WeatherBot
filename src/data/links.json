@@ -1,0 +1,4 @@
+{
+  "openWeatherMap": "https://api.openweathermap.org/data/2.5",
+  "postmanCV19": "https://api.covid19api.com/total/dayone/country"
+}
