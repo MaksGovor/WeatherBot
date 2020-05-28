@@ -8,15 +8,8 @@ const maybe = x => {
   return Object.assign(map, { map, ap, chain, getData });
 };
 
-const path = data => (
-  path => (
-    maybe(path)(path => (
-      path.split('.').reduce(
-        (prev, key) => (prev[key] || {}),
-        (data || {})
-      )
-    ))
-  )
-);
+const reducer = (prev, key) => (prev[key] || {});
+const fn = path => path.split('.').reduce(reducer, (data || {}));
+const path = data => path => maybe(path)(fn);
 
 module.exports = { maybe, path };
