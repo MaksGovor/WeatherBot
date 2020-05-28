@@ -66,13 +66,15 @@ const projection = metadata => {
 // Make groups of objects by a common field
 
 const groupedByField = (arr, key) => {
-  const groups = new Object(), result = new Array();
+  const groups = new Object();
+  const result = new Array();
   arr.forEach(obj => {
-    if (!(obj[key] in groups)) {
-      groups[obj[key]] = [];
-      result.push(groups[obj[key]]);
+    const value = obj[key];
+    if (!(value in groups)) {
+      groups[value] = [];
+      result.push(groups[value]);
     }
-    groups[obj[key]].push(obj);
+    groups[value].push(obj);
   });
   return result;
 };
