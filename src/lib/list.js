@@ -12,4 +12,4 @@ const shift = arr => {
   return arr;
 }
 
-module.exports = {pop, shift};
+module.exports = { pop, shift };

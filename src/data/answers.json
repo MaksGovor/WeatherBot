@@ -4,5 +4,6 @@
   "empty_command": "You must enter /weather and the city name.\nLike /weather London.\nOr you can send the location right now and I'll remember your city for all the next teams until you change it yourself.",
   "cv19": "❗BE CAREFUL❗\nCOVID-19 in your counrty\n",
   "comment": "Write a message to leave a weather review for other people in your town.\nBut remember the rules of etiquette.\nYou can override this by using the command /cancel.",
-  "leave": "Well, your answer is well received."
+  "leave": "Well, your answer is well received.",
+  "error": "❗Looks like you entered the wrong city name."
 }
