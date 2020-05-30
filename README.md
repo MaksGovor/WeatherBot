@@ -17,7 +17,6 @@ Hey, this bot is used to get **weather data**.
 
  * [Telegraf.js](https://telegraf.js.org/#/) 
  * [OpenWeatherMap](https://openweathermap.org/api)
- * [MongoDB](https://www.mongodb.com/)
 
 ## Engines 
 
