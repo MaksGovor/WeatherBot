@@ -73,17 +73,17 @@ const groupedByField = (arr, key) => {
 };
 
 
-const sweip = async (ctx, sweiper) => {
+const sweip = (ctx, sweiper) => {
   const telegramId = path(ctx)('update.callback_query.from.id').getData();
   const data = users.getData(telegramId);
   try {
     const msgId = path(ctx)('update.callback_query.message.message_id').getData();
-    await ctx
+    ctx
       .telegram
       .editMessageText(ctx.chat.id, msgId, msgId, sweiper(data.component)[0], Extra.markup(keyboard));
     users.update({ component: data.component }, telegramId);
   } catch (err) {
-    await ctx.reply('!!!Error ' + err.message);
+    ctx.reply('!!!Error ' + err.message);
   }
 };
 
@@ -125,7 +125,7 @@ bot.on('location', ctx => {
       users.update({ last: data.name }, telegramId);
       maybe(data)(projectTD)(helper)(ctx.reply);
     })
-    .catch(err => ctx.reply(commands.error));
+    .catch(() => ctx.reply(commands.error));
 });
 
 bot.command('weather', ctx => {
@@ -137,15 +137,15 @@ bot.command('weather', ctx => {
   fetch(`${links.openWeatherMap}/weather?q=${text}&appid=${apiKey}`)
     .then(data => {
       maybe(data)(projectTD)(helper)(ctx.reply);
-      users.update({ last: data.name }, telegramId);
+      users.update({ last: data.name, component: '' }, telegramId);
       const text = path(data)('sys.country').getData();
       fetch(`${links.postmanCV19}/${text}`)
         .then(data => {
           ctx.reply(commands.cv19 + maybe(data.pop())(projectCV19).chain(helper));
         })
-        .catch(err => ctx.reply(commands.error));
+        .catch(() => ctx.reply(commands.error));
     })
-    .catch(err => ctx.reply(commands.error));
+    .catch(() => ctx.reply(commands.error));
 });
 
 bot.command('weather5days', ctx => {
@@ -160,19 +160,16 @@ bot.command('weather5days', ctx => {
         .map(project5D)
         .map(d => groupedByField(d.list, 'date'))
         .map(d => d.map(gr => gr.map(helper)))
-        .chain(d => d.map(gr => gr.join('\n' + '_'.repeat(40) + '\n')));
-      (async () => {
-        await ctx.reply('🌇 City: ' + data.city.name);
-        await ctx.telegram.sendMessage(ctx.chat.id, loggered[0], Extra.markup(keyboard));
-        users.update({ last: data.city.name, component: loggered }, telegramId);
-      })();
+        .chain(d => d.map(gr => `🌇City: ${data.city.name}\n${gr.join('\n\n')}`));
+      ctx.telegram.sendMessage(ctx.chat.id, loggered[0], Extra.markup(keyboard));
+      users.update({ last: data.city.name, component: loggered }, telegramId);
     })
-    .catch(err => ctx.reply(commands.error));
+    .catch(() => ctx.reply(commands.error));
 });
 
 bot.command('weathercomment', ctx => ctx.scene.enter('weatherComment'));
 
-bot.command('reviews', async ctx => {
+bot.command('reviews', ctx => {
   const telegramId = path(ctx)('update.message.from.id').getData();
   let text = getTownFromMsg(ctx.message.text);
   if (!text) {
