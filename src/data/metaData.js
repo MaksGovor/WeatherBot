@@ -24,7 +24,7 @@ const mdThisTimeWeather = {
   wind: ['wind', {
     speed: ['speed', replace('🌪️ The wind speed is * m/s', '*')],
   }],
-  date: ['dt', d => `📅 Date: ${new Date(d * 1000).toLocaleDateString()}`],
+  date: ['dt', d => `📅 Date: ${new Date(d * 1000).toJSON().substr(0, 10)}`],
   time: ['dt', d => `⏰ Time: ${new Date(d * 1000).toLocaleTimeString()}`],
 };
 
