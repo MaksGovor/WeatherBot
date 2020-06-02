@@ -1,6 +1,6 @@
 'use strict';
 
-function EventEmitter () {
+function EventEmitter() {
   this.events = new Map();
   this.wrappers = new Map();
   this.temporary = new Map();
@@ -39,7 +39,7 @@ EventEmitter.prototype.remove = function(name, fn) {
     event.delete(wrapper);
     if (event.size === 0) this.events.delete(name);
   }
-}
+};
 
 EventEmitter.prototype.once = function(name, fn) {
   const wrapper = (...args) => {
@@ -48,7 +48,7 @@ EventEmitter.prototype.once = function(name, fn) {
   };
   this.wrappers.set(fn, wrapper);
   this.on(name, wrapper);
-}
+};
 
 EventEmitter.prototype.limit = function(name, fn, date) {
   const wrapper = (...args) => {
@@ -57,19 +57,19 @@ EventEmitter.prototype.limit = function(name, fn, date) {
   };
   this.temporary.set(date, name);
   this.on(name, wrapper);
-}
+};
 
 EventEmitter.prototype.deleteMissed = function() {
   for (const date of this.temporary.keys()) {
-    if (new Date() >= new Date(date)){
+    if (new Date() >= new Date(date)) {
       const name = this.temporary.get(date);
       const event = this.events.get(name);
       this.temporary.delete(date);
-      for (const fn of event.values()){
-        this.remove(name, fn)
+      for (const fn of event.values()) {
+        this.remove(name, fn);
       }
     }
   }
-}
+};
 
 module.exports = EventEmitter;

@@ -12,7 +12,7 @@ const fetch = url => new Promise((resolve, reject) => {
     res.on('data', chunk => {
       chunks.push(chunk);
     });
-    
+
     res.on('end', () => {
       const json = Buffer.concat(chunks).toString();
       try {

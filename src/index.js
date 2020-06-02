@@ -73,14 +73,15 @@ const groupedByField = (arr, key) => {
 };
 
 
-const sweip = (ctx, sweiper) => {
+const sweip = (ctx, sweiper, keyboard) => {
   const telegramId = path(ctx)('update.callback_query.from.id').getData();
   const data = users.getData(telegramId);
   try {
     const msgId = path(ctx)('update.callback_query.message.message_id').getData();
+    const text = sweiper(data.component)[0];
     ctx
       .telegram
-      .editMessageText(ctx.chat.id, msgId, msgId, sweiper(data.component)[0], Extra.markup(keyboard));
+      .editMessageText(ctx.chat.id, msgId, msgId, text, Extra.markup(keyboard));
     users.update({ component: data.component }, telegramId);
   } catch (err) {
     ctx.reply('!!!Error ' + err.message);
@@ -213,8 +214,8 @@ bot.action('exit', ctx => {
   ctx.deleteMessage();
 });
 
-bot.action('right', ctx => sweip(ctx, shift));
+bot.action('right', ctx => sweip(ctx, shift, keyboard));
 
-bot.action('left', ctx => sweip(ctx, pop));
+bot.action('left', ctx => sweip(ctx, pop, keyboard));
 
 bot.launch();

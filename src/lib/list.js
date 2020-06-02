@@ -10,6 +10,6 @@ const shift = arr => {
   const element = arr.shift();
   arr.push(element);
   return arr;
-}
+};
 
 module.exports = { pop, shift };
